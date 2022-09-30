@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <title>CW - WebShell</title>
+        <meta charset="UTF-8" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js"></script>
+        <script src="./index.js"></script>
+        <style type="text/css">
+            div#terminal-container {
+                height: 100%;
+                left: 0;
+                position: absolute;
+                top: 0;
+                width: 100%;
+            }
+
+            div#terminal-container div {
+                height: 100%;
+            }
+
+            .xterm-viewport,
+            .xterm-screen {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            * {
+                overflow: hidden !important;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="terminal-container"></div>
+    </body>
+</html>
