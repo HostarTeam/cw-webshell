@@ -1,6 +1,6 @@
 import { WebSocket, WebSocketServer, RawData } from 'ws';
 import PTYService from './PTYService';
-import { getSocketID, checkIfSocketClosed } from './lib/utils';
+import { getSocketID, checkIfSocketClosed, printSuccess } from './lib/utils';
 import { handleMessage } from './handleMessage';
 import { Server, createServer, IncomingMessage } from 'http';
 import express, {
@@ -57,7 +57,13 @@ export default class WebShell {
 
         this.httpServer.listen(
             this.webShellOptions.port,
-            this.webShellOptions.host
+            this.webShellOptions.host,
+            null,
+            () => {
+                printSuccess(
+                    `WebShell listening on ${this.webShellOptions.host}:${this.webShellOptions.port}`
+                );
+            }
         );
     }
 
