@@ -1,5 +1,5 @@
-import { WebSocket } from 'ws';
-import WebShell from './WebShell';
+import type { WebSocket } from 'ws';
+import type WebShell from './WebShell';
 import { getSocketID } from './lib/utils';
 
 export default class MessageRouting {

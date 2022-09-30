@@ -1,15 +1,12 @@
-import { WebSocket, WebSocketServer, RawData } from 'ws';
+import type { WebSocket, RawData } from 'ws';
+import type { Server, IncomingMessage } from 'http';
+import type { Application, Request, Response } from 'express';
+import { WebSocketServer } from 'ws';
 import PTYService from './PTYService';
 import { getSocketID, checkIfSocketClosed, printSuccess } from './lib/utils';
 import { handleMessage } from './handleMessage';
-import { Server, createServer, IncomingMessage } from 'http';
-import express, {
-	Application,
-	Request,
-	Response,
-	json,
-	urlencoded,
-} from 'express';
+import { createServer } from 'http';
+import express, { json, urlencoded } from 'express';
 import { resolve } from 'path';
 
 export interface WebShellOptions {

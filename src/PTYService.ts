@@ -1,4 +1,4 @@
-import { WebSocket } from 'ws';
+import type { WebSocket } from 'ws';
 import { IPty, spawn } from 'node-pty';
 import { platform } from 'os';
 

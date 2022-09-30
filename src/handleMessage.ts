@@ -1,6 +1,6 @@
-import WebShell from './WebShell';
+import type WebShell from './WebShell';
+import type { WebSocket, RawData } from 'ws';
 import MessageRouting from './MessageRouting';
-import { WebSocket, RawData } from 'ws';
 
 export function handleMessage(
 	this: WebShell,
