@@ -1,0 +1,103 @@
+import { WebSocket, WebSocketServer, RawData } from 'ws';
+import PTYService from './PTYService';
+import { getSocketID, checkIfSocketClosed } from './lib/utils';
+import { handleMessage } from './handleMessage';
+import { Server, createServer, IncomingMessage } from 'http';
+import express, {
+    Application,
+    Request,
+    Response,
+    json,
+    urlencoded,
+} from 'express';
+import { resolve } from 'path';
+
+export interface WebShellOptions {
+    token: string;
+    port: number;
+    host: string;
+}
+
+export default class WebShell {
+    protected wss: WebSocketServer;
+    public ptys: Map<string, PTYService> = new Map();
+    private handleMessage: (socket: WebSocket, message: RawData) => void =
+        handleMessage;
+    private httpServer: Server;
+    private webApp: Application;
+
+    constructor(private webShellOptions: WebShellOptions) {
+        this.startWebServer();
+    }
+
+    private startWebServer(): void {
+        this.httpServer = createServer();
+
+        this.webApp = express();
+
+        this.webApp.disable('x-powered-by');
+        this.webApp.use(json());
+        this.webApp.use(urlencoded({ extended: true }));
+
+        this.webApp.get('/', (req: Request, res: Response) => {
+            if (req.headers.authorization !== this.webShellOptions.token)
+                return res.status(401).send('Invalid token');
+            res.sendFile(resolve('./public/index.html'));
+        });
+
+        this.webApp.use(express.static(resolve('./public')));
+
+        this.webApp.get('*', (req: Request, res: Response) => {
+            res.status(404).send('404 Not Found');
+        });
+
+        this.httpServer.on('request', this.webApp);
+
+        this.startWSS();
+
+        this.httpServer.listen(
+            this.webShellOptions.port,
+            this.webShellOptions.host
+        );
+    }
+
+    private startWSS(): void {
+        this.wss = new WebSocketServer({ noServer: true });
+
+        this.wss.on('connection', (socket, request) => {
+            this.authenticateSocket(socket, request);
+            if (checkIfSocketClosed(socket)) return;
+
+            const socketID = getSocketID(socket);
+            const ptyService = new PTYService(socket);
+            this.ptys.set(socketID, ptyService);
+            this.setSocketEvents(socket);
+            socket.onclose = () => {
+                this.ptys.get(socketID).killPty();
+                this.ptys.delete(socketID);
+            };
+        });
+
+        this.httpServer.on('upgrade', (request, socket, head) => {
+            this.wss.handleUpgrade(request, socket, head, (socket) => {
+                this.wss.emit('connection', socket, request);
+            });
+        });
+    }
+
+    private authenticateSocket(
+        socket: WebSocket,
+        request: IncomingMessage
+    ): void {
+        const token: string = request.headers.authorization as string;
+        if (!token) return socket.close(1011, 'No token');
+        if (token !== this.webShellOptions.token)
+            return socket.close(1011, 'Invalid token');
+    }
+
+    private setSocketEvents(socket: WebSocket): void {
+        socket.on('message', (data) => {
+            this.handleMessage(socket, data);
+        });
+    }
+}
