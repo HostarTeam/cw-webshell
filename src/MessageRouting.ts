@@ -1,6 +1,6 @@
 import type { WebSocket } from 'ws';
 import type WebShell from './WebShell';
-import { getSocketID } from './lib/utils';
+import { getSocketID, printError } from './lib/utils';
 
 export default class MessageRouting {
 	[key: string]: (ws: WebShell, socket: WebSocket, data?: unknown) => void;
@@ -23,7 +23,8 @@ export default class MessageRouting {
 		const socketID = getSocketID(socket);
 		try {
 			ws.ptys.get(socketID).resizePty(data.cols, data.rows);
-			// eslint-disable-next-line no-empty
-		} catch (err) {}
+		} catch (err) {
+			printError(err);
+		}
 	}
 }
