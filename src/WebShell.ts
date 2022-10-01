@@ -54,13 +54,13 @@ export default class WebShell {
 			}
 		);
 
-		this.webApp.get('/', (req: Request, res: Response) => {
+		this.webApp.get('/', (_, res: Response) => {
 			res.sendFile(join(__dirname, '../public/index.html'));
 		});
 
 		this.webApp.use(express.static(join(__dirname, '../public')));
 
-		this.webApp.get('*', (req: Request, res: Response) => {
+		this.webApp.get('*', (_, res: Response) => {
 			res.status(404).send('404 Not Found');
 		});
 
