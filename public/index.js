@@ -281,7 +281,7 @@ class TerminalUI {
 }
 
 const serverAddress = `${
-	window.location.protocol == 'https' ? 'wss' : 'ws'
+	window.location.protocol === 'https:' ? 'wss' : 'ws'
 }://${window.location.host}/`;
 
 /**
