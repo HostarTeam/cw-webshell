@@ -1,13 +1,18 @@
 import type { WebSocket, RawData } from 'ws';
 import type { Server, IncomingMessage } from 'http';
-import type { Application, Request, Response } from 'express';
+import type { Application, NextFunction, Request, Response } from 'express';
 import { WebSocketServer } from 'ws';
 import PTYService from './PTYService';
-import { getSocketID, checkIfSocketClosed, printSuccess } from './lib/utils';
+import {
+	getSocketID,
+	checkIfSocketClosed,
+	printSuccess,
+	getTokenFromAuthorizationHeader,
+} from './lib/utils';
 import { handleMessage } from './handleMessage';
 import { createServer } from 'http';
 import express, { json, urlencoded } from 'express';
-import { resolve } from 'path';
+import { join } from 'path';
 
 export interface WebShellOptions {
 	token: string;
@@ -36,13 +41,24 @@ export default class WebShell {
 		this.webApp.use(json());
 		this.webApp.use(urlencoded({ extended: true }));
 
+		this.webApp.get(
+			'*',
+			(req: Request, res: Response, next: NextFunction) => {
+				if (
+					getTokenFromAuthorizationHeader(
+						req.headers.authorization
+					) !== this.webShellOptions.token
+				)
+					return res.status(401).send('Invalid token');
+				next();
+			}
+		);
+
 		this.webApp.get('/', (req: Request, res: Response) => {
-			if (req.headers.authorization !== this.webShellOptions.token)
-				return res.status(401).send('Invalid token');
-			res.sendFile(resolve('./public/index.html'));
+			res.sendFile(join(__dirname, '../public/index.html'));
 		});
 
-		this.webApp.use(express.static(resolve('./public')));
+		this.webApp.use(express.static(join(__dirname, '../public')));
 
 		this.webApp.get('*', (req: Request, res: Response) => {
 			res.status(404).send('404 Not Found');
@@ -92,7 +108,9 @@ export default class WebShell {
 		socket: WebSocket,
 		request: IncomingMessage
 	): void {
-		const token: string = request.headers.authorization as string;
+		const token: string = getTokenFromAuthorizationHeader(
+			request.headers.authorization
+		);
 		if (!token) return socket.close(1011, 'No token');
 		if (token !== this.webShellOptions.token)
 			return socket.close(1011, 'Invalid token');
