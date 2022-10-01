@@ -77,3 +77,10 @@ export function generateToken(length: number): string {
 
 	return result;
 }
+
+export function getTokenFromAuthorizationHeader(
+	authorization: string
+): string | null {
+	if (!authorization) return null;
+	return authorization.split(/ +/g).pop();
+}
