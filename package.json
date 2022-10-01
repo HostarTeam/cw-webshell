@@ -9,7 +9,8 @@
     "lint": "eslint . --max-warnings=0",
     "run": "node .",
     "build": "tsc -p .",
-    "compile": "npm run build && pkg ."
+    "compile": "npm run build && pkg . --output build/usr/bin/cw-webshell",
+    "build-deb": "npm run compile && dpkg --build build/ cw-webshell.deb"
   },
   "author": "",
   "license": "ISC",
